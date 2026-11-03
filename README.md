@@ -1,6 +1,6 @@
 # Loan Salamander
 
-The self-hosted version of Loan Salamander: an application for loan planning with tools for analysis, comparison, and scenario modeling. All data is stored locally in SQLite—no external services required.
+The self-hosted version of [Loan Salamander](https://www.loansalamander.com/): an application for loan planning with tools for analysis, comparison, and scenario modeling. All data is stored locally in SQLite—no external services required.
 
 ## Quick Start
 

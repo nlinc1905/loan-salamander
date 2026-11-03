@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  /* Color scheme: https://coolors.co/1b3022-395756-4f5d75-7261a3-a67db8 */
+  --color-brand-green: #405335;
+  --color-accent-teal: #395756;
+  --color-accent-slate: #4f5d75;
+  --color-accent-purple: #7261a3;
+  --color-accent-lavender: #A67DB8;
+}
+
+/* Custom layout and utility classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+

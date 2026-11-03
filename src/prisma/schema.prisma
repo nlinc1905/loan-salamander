@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../../dev.db"
+}
+
+enum LoanType {
+  mortgage
+  school
+  auto
+  other
+}
+
+enum RateType {
+  fixed
+  variable
+}
+
+enum VarTrendScenario {
+  average
+  worst
+  best
+}
+
+enum ExtraPaymentType {
+  single
+  recurring
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  name       String?
+  password   String
+  max_messages_per_user Int?
+  premium_access_until DateTime? @default("3000-01-01T00:00:00.000Z")
+  createdAt  DateTime @default(now())
+  // Back relations
+  accounts       Account[]
+  sessions       Session[]
+  loans          Loan[]
+  paymentSchedules PaymentSchedule[]
+  exportActivity UserExportActivity?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model UserExportActivity {
+  userId                         Int      @id
+  user                           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hasDownloadedPremiumData       Boolean  @default(false)
+  hasDownloadedPaymentScenarios  Boolean  @default(false)
+  hasDownloadedRefinanceScenarios Boolean @default(false)
+  firstDownloadedAt              DateTime?
+  lastDownloadedAt               DateTime?
+  createdAt                      DateTime @default(now())
+  updatedAt                      DateTime @updatedAt
+}
+
+model Loan {
+  id               String           @id @default(cuid())
+  name             String
+  assetCost        Float
+  downPayment      Float            @default(0)
+  interestRate     Float
+  years            Int
+  months           Int              @default(0)
+  loanType         LoanType         @default(mortgage)
+  rateType         RateType         @default(fixed)
+  varFixedYears    Int              @default(5)
+  varPeriodicity   Int              @default(12)
+  varMaxIncrease   Float            @default(4.0)
+  varVolatility    Float            @default(0.5)
+  varTrendScenario VarTrendScenario @default(average)
+  varRateMode      String?          @default("trend")
+  varManualRates   Json?
+  userId           Int?
+  user             User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  paymentSchedules PaymentSchedule[]
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model PaymentSchedule {
+  id        String                @id @default(cuid())
+  name      String
+  userId    Int
+  user      User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loanId    String
+  loan      Loan                  @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  items     PaymentScheduleItem[]
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  @@index([userId])
+  @@index([loanId])
+  @@unique([userId, loanId, name])
+}
+
+model PaymentScheduleItem {
+  id         String           @id @default(cuid())
+  scheduleId String
+  schedule   PaymentSchedule  @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  type       ExtraPaymentType
+  amount     Float
+  period     Int
+  startPeriod Int
+  endPeriod  Int
+  position   Int              @default(0)
+  createdAt  DateTime         @default(now())
+
+  @@index([scheduleId])
+  @@index([scheduleId, position])
+}
+
